@@ -2,105 +2,123 @@
 
 namespace Betalectic\Permiso;
 
-use Spatie\EloquentSortable\Sortable;
-use Illuminate\Database\Eloquent\Model;
-use Spatie\Translatable\HasTranslations;
-use Illuminate\Database\Eloquent\Builder;
-use Spatie\EloquentSortable\SortableTrait;
-use Illuminate\Database\Eloquent\Collection as DbCollection;
-
-class Permiso extends Model implements Sortable
+class Permiso
 {
-    use SortableTrait, HasTranslations, HasSlug;
 
-    public $translatable = ['name', 'slug'];
-
-    public $guarded = [];
-
-    public function scopeWithType(Builder $query, string $type = null): Builder
+    public function soBuild($user)
     {
-        if (is_null($type)) {
-            return $query;
-        }
-
-        return $query->where('type', $type)->orderBy('order_column');
+        $builder = new Build($userId);
+        return $builder->make();
     }
 
-    public function scopeContaining(Builder $query, string $name, $locale = null): Builder
+    public function addGlobalPermission($permission)
     {
-        $locale = $locale ?? app()->getLocale();
+        $permission = Permission::firstOrCreate([
+            'value' => $permission
+        ]);
 
-        $locale = '"'.$locale.'"';
-
-        return $query->whereRaw("LOWER(JSON_EXTRACT(name, '$.".$locale."')) like ?", ['"%'.strtolower($name).'%"']);
+        return $permission;
     }
 
-    /**
-     * @param array|\ArrayAccess $values
-     * @param string|null $type
-     * @param string|null $locale
-     *
-     * @return \Spatie\Tags\Tag|static
-     */
-    public static function findOrCreate($values, string $type = null, string $locale = null)
+    public function addEntityPermission($permission,$entity)
     {
-        $tags = collect($values)->map(function ($value) use ($type, $locale) {
-            if ($value instanceof Tag) {
-                return $value;
-            }
+        $value = is_null($entity) ? $permission : $entity.'_'.$permission;
 
-            return static::findOrCreateFromString($value, $type, $locale);
-        });
+        $permission = Permission::firstOrCreate([
+            'value' => $entity.'_'.$permission,
+            'entity' => $entity
+        ]);
 
-        return is_string($values) ? $tags->first() : $tags;
+        return $permission;
     }
 
-    public static function getWithType(string $type): DbCollection
+    public function manageGroup($name, $permissions, $entity = NULL)
     {
-        return static::withType($type)->orderBy('order_column')->get();
+        $group = Group::firstOrCreate(['name' => $name]);
+        $group->associate($permissions);
     }
 
-    public static function findFromString(string $name, string $type = null, string $locale = null)
+    public function deleteGroup($name)
     {
-        $locale = $locale ?? app()->getLocale();
-
-        return static::query()
-            ->where("name->{$locale}", $name)
-            ->where('type', $type)
-            ->first();
+        $group = Group::firstOrCreate(['name' => $name]);
+        $group->permissions()->detach();
+        $group->users()->detach();
+        $group->delete();
     }
 
-    public static function findFromStringOfAnyType(string $name, string $locale = null)
+    public function mapEntityToGroup($groupName, $entity, $entityId)
     {
-        $locale = $locale ?? app()->getLocale();
+        $group = Group::where(['name' => $name])->first();
+        // Assume that the group has related group permissions
 
-        return static::query()
-            ->where("name->{$locale}", $name)
-            ->first();
+        GroupEntity::firstOrCreate([
+            'group_id' => $group->id,
+            'entity' => $entity,
+            'entity_id' => $entityId
+        ]);
     }
 
-    protected static function findOrCreateFromString(string $name, string $type = null, string $locale = null): self
+    public function soDoPermit($user, $permission, $entity = NULL, $entityId = NULL)
     {
-        $locale = $locale ?? app()->getLocale();
+        $permission = $this->getPermissionObject($permission,$entity,$entityId);
 
-        $tag = static::findFromString($name, $type, $locale);
-
-        if (! $tag) {
-            $tag = static::create([
-                'name' => [$locale => $name],
-                'type' => $type,
-            ]);
-        }
-
-        return $tag;
+        UserPermission::firstOrCreate([
+            'permission' => $permission->value,
+            'entity' => $entity,
+            'entity_id' => $entityId
+        ]);
     }
 
-    public function setAttribute($key, $value)
+    public function soDontPermit($user, $permission, $entity = NULL, $entityId = NULL)
     {
-        if ($key === 'name' && ! is_array($value)) {
-            return $this->setTranslation($key, app()->getLocale(), $value);
-        }
+        $userPermission = $this->getUserPermissionObject($user, $permission, $entity, $entityId);
 
-        return parent::setAttribute($key, $value);
+        $userPermission->delete();
+    }
+
+    public function soCan($user, $permission, $entity = NULL, $entityId = NULL)
+    {
+        $userPermission = $this->getUserPermissionObject($user, $permission, $entity, $entityId);
+
+        return is_null($userPermission) ? false : true;
+    }
+
+    public function getUserPermissionObject(
+        $user,
+        $permission,
+        $entity = NULL,
+        $entityId = NULL
+    )
+    {
+        $permission = $this->getPermissionObject($permission,$entity,$entityId);
+
+        $userPermission = UserPermission::where([
+            'user_id' => $userId,
+            'permission' => $permission->value,
+            'entity' => $entity,
+            'entity_id' => $entityId
+        ])->first();
+
+        return $userPermission;
+
+    }
+
+    public function getPermissionObject($permission, $entity = NULL, $entityId = NULL)
+    {
+        $value = is_null($entity) ? $permission : $entity.'_'.$permission;
+
+        $permission = Permission::where([
+            'value' => $value,
+            'entity' => $entity,
+            'entity_id' => $entityId,
+        ])->first();
+
+        return $permission;
+    }
+
+    public function soAddGroup($userId, $group)
+    {
+        $group = Group::where(['name' => $name])->first();
+        $group->users()->attach($userId);
     }
 }

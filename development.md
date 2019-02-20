@@ -10,7 +10,14 @@
 
 $permiso = new Permiso();
 
-$permiso->manageGroup($groupName,$listOfPermissions); // Unique groups
+$permiso->addGlobalPermission('manage_business_units');
+$permiso->addEntityPermission('approve','product'); //Becomes product_approve
+
+$permiso->manageGroup($groupName,$listOfPermissions);
+$permiso->deleteGroup($groupName);
+$permiso->mapEntityToGroup($groupName, $entity, $entityId);
+
+$permiso->manageGroup($groupName,$listOfPermissions); // Unique groups, If there is any new permission, it would be added as default
 $permiso->deleteGroup($groupName);
 
 $user->soDoPermit('manage_business_units');
@@ -42,5 +49,40 @@ public function soBuild()
     ];
 }
 ```
+
+
+Tables
+
+permiso_permissions
+====
+id
+value -> unique
+entity_type
+
+permiso_groups
+=====
+id
+name - unique
+
+permiso_group_permissions
+======
+group_id
+permission_id
+
+permiso_group_entities
+======
+id
+group_id
+entity_type
+entities = [], null // If this is null, user gets access to all entities. Builder returns true, instead of array
+
+permiso_user_permissions
+======
+id
+user_id
+permission_id
+entity_type
+entities = [], null // If this is null, user gets access to all entities. Builder returns true, instead of array
+
 
 
