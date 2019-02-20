@@ -1,8 +1,8 @@
-<?php namespace Rjvim\Connect;
+<?php namespace Rjvim\Permiso;
 
 use Illuminate\Support\Facades\Facade;
 
-class ConnectFacade extends Facade 
+class PermisoFacade extends Facade 
 {
 
     /**
@@ -10,6 +10,6 @@ class ConnectFacade extends Facade
      *
      * @return string
      */
-    protected static function getFacadeAccessor() { return 'connect'; }
+    protected static function getFacadeAccessor() { return 'permiso'; }
 
 }
