@@ -1,24 +1,50 @@
 {
     "name": "rjvim/permiso",
-    "description": "Laravel Permissions Control",
+    "description": "Add permissions behaviour to your Laravel app",
+    "keywords": [
+        "permissions",
+        "authorization"
+    ],
     "homepage": "https://github.com/rjvim/permiso",
     "license": "MIT",
     "authors": [
         {
             "name": "Rajiv Seelam",
-            "email": "rajivs.iitkgp@gmail.com"
+            "email": "rajiv@betalectic.com",
+            "homepage": "https://betalectic.com",
+            "role": "Developer"
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "illuminate/config": "5.*",
-        "illuminate/database": "5.*",
-        "illuminate/support": "5.*"
+        "php": "^7.1",
+        "laravel/framework": "5.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.4",
+        "orchestra/testbench": "~3.7.0"
     },
     "autoload": {
         "psr-4": {
-            "Rjvim\\": "src/Rjvim"
-        },
+            "Betalectic\\Permiso\\": "src"
+        }
     },
-    "minimum-stability": "dev"
+
+    "autoload-dev": {
+        "psr-4": {
+            "Betalectic\\Permiso\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Betalectic\\Permiso\\PermisoServiceProvider"
+            ]
+        }
+    }
 }
