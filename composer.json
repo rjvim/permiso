@@ -16,9 +16,9 @@
         "illuminate/support": "5.*"
     },
     "autoload": {
-        "psr-0": {
-            "Rjvim\\Permio": "src/"
-        }
+        "psr-4": {
+            "Rjvim\\": "src/Rjvim"
+        },
     },
     "minimum-stability": "dev"
 }
