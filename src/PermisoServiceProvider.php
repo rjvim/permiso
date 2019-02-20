@@ -1,6 +1,6 @@
 <?php
 
-namespace Spatie\Tags;
+namespace Betalectic\Permiso;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -23,7 +23,7 @@ class PermisoServiceProvider extends ServiceProvider
             // $this->publishes([
             //     __DIR__.'/../config/tags.php' => config_path('tags.php'),
             // ], 'config');
-            
+
         }
     }
 
