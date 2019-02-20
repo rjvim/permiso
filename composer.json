@@ -1,0 +1,24 @@
+{
+    "name": "rjvim/permiso",
+    "description": "Laravel Permissions Control",
+    "homepage": "https://github.com/rjvim/permiso",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rajiv Seelam",
+            "email": "rajivs.iitkgp@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/config": "5.*",
+        "illuminate/database": "5.*",
+        "illuminate/support": "5.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Rjvim\\Permio": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
