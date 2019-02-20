@@ -58,6 +58,7 @@ permiso_permissions
 id
 value -> unique
 entity_type
+applicable_child - entity_name of child
 
 permiso_groups
 =====
@@ -84,5 +85,13 @@ permission_id
 entity_type
 entities = [], null // If this is null, user gets access to all entities. Builder returns true, instead of array
 
+relationships
+======
+parent_id
+parent_type
+child_id
+child_type
+
+// Find an entity -> Check if it has children
 
 
