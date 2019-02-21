@@ -1,13 +1,15 @@
-<?php
+<?php namespace Betalectic\Permiso\Models;
 
-class User {
+use App\User as OriginalUser;
+
+class User extends OriginalUser {
 
 	public function build()
 	{
 		// Get all permissions
 		$permissions = Permission::all();
 		$permissions = [
-			"create_country" => true, // If 
+			"create_country" => true, // If
 		];
 
 		$userPermissions = UserPermissions::all();
@@ -23,7 +25,11 @@ class User {
 		 give on those entities.
 		 If only entity is present in entity_id -> Then get all permissions for that entity_type
 		 and give all those permissions for that entity_id
+
+
 		**/
+
+
 
 	}
 }

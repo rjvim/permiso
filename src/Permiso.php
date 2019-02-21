@@ -2,8 +2,152 @@
 
 namespace Betalectic\Permiso;
 
+use Exception;
+
+use Betalectic\Permiso\Models\Permission;
+use Betalectic\Permiso\Models\Entity;
+use Betalectic\Permiso\Models\Group;
+use Betalectic\Permiso\Models\UserPermission;
+
 class Permiso
 {
+    public function registerGroup($groupName, $permissionIds = [], $displayName = "")
+    {
+        $group = Group::firstOrCreate(['name' => $groupName]);
+        $group->display_name = $displayName;
+        $group->save();
+
+        if(count($permissionIds))
+        {
+            $group->permissions()->sync($permissionIds);
+        }
+    }
+
+    public function setParent($child, $parent)
+    {
+        $parentEntity = Entity::firstOrCreate([
+            'type' => get_class($parent),
+            'value' => $parent->getKey(),
+        ]);
+
+        $childEntity = Entity::firstOrCreate([
+            'type' => get_class($child),
+            'value' => $child->getKey(),
+        ]);
+
+        $childEntity->pid = $parentEntity->id;
+        $childEntity->save();
+    }
+
+    public function deregisterEntity($entity)
+    {
+        $entity = Entity::where([
+            'type' => get_class($entity),
+            'value' => $entity->getKey(),
+        ])->first();
+
+        $entity->children()->update(['pid' => NULL]);
+
+        $entity->delete();
+    }
+
+    public function registerEntity($entity)
+    {
+        Entity::firstOrCreate([
+            'type' => get_class($entity),
+            'value' => $entity->getKey()
+        ]);
+    }
+
+    public function denyOnGroupAndEntity($user, $group, $entity)
+    {
+        $denier = new PermissionDenier($user);
+        $denier->group($group);
+        $denier->entity($entity);
+        $denier->commit();
+    }
+
+    public function denyOnGroup($user, $group)
+    {
+        $denier = new PermissionDenier($user);
+        $denier->group($group);
+        $denier->commit();
+    }
+
+    public function grantOnGroupAndEntity($user, $group, $entity, $uniqueness = false)
+    {
+        $grantor = new PermissionGrantor($user);
+        $grantor->group($group);
+        $grantor->entity($entity);
+        $grantor->setUniqueness($uniqueness);
+        $grantor->commit();
+    }
+
+    public function grantOnGroup($user, $group)
+    {
+        $grantor = new PermissionGrantor($user);
+        $grantor->group($group);
+        $grantor->commit();
+    }
+
+    public function grantOnEntity($user, $entity)
+    {
+        $grantor = new PermissionGrantor($user);
+        $grantor->entity($entity);
+        $grantor->commit();
+    }
+
+    public function grantPermissionOnEntity($permission, $user, $entity)
+    {
+        $grantor = new PermissionGrantor($user);
+        $grantor->permission($permission);
+        $grantor->entity($entity);
+        $grantor->commit();
+    }
+
+    public function grantPermission($permission, $user)
+    {
+        $grantor = new PermissionGrantor($user);
+        $grantor->permission($permission);
+        $grantor->commit();
+    }
+
+    public function deregisterPermission($permission)
+    {
+        $permission = Permission::firstOrCreate([
+            'value' => $permission
+        ]);
+
+        $permission->userPermissions()->delete();
+        $permission->groups()->delete();
+
+        $permission->delete();
+    }
+
+    public function registerPermission($permission, $entity)
+    {
+        $permission = Permission::firstOrCreate([
+            'value' => $permission
+        ]);
+
+        if(is_null($permission->entity_type)){
+            $permission->entity_type = $entity;
+            $permission->save();
+        }
+        else{
+            if($permission->entity_type != $entity)
+            {
+                throw new Exception("This permission is already registered with {$permission->entity_type}", 1);
+            }
+        }
+
+        return $permission;
+    }
+
+    public function rajiv()
+    {
+        dd("rajiv");
+    }
 
     public function soBuild($user)
     {
