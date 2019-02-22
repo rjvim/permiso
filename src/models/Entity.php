@@ -10,7 +10,7 @@ class Entity extends Model {
 
     public function children()
     {
-        return $this->hasMany(Entity::class,'pid','id');
+        return $this->belongsToMany(Entity::class,'permiso_entity_parents','parent_id','child_id');
     }
 
 }

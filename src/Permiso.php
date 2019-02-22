@@ -3,6 +3,7 @@
 namespace Betalectic\Permiso;
 
 use Exception;
+use DB;
 
 use Betalectic\Permiso\Models\Permission;
 use Betalectic\Permiso\Models\Entity;
@@ -11,16 +12,41 @@ use Betalectic\Permiso\Models\UserPermission;
 
 class Permiso
 {
-    public function registerGroup($groupName, $permissionIds = [], $displayName = "")
+    public function cleanUp()
+    {
+        DB::table('permiso_entities')->truncate();
+        DB::table('permiso_permissions')->truncate();
+        DB::table('permiso_groups')->truncate();
+        DB::table('permiso_groups_permissions')->truncate();
+        DB::table('permiso_groups_entities')->truncate();
+        DB::table('permiso_user_permissions')->truncate();
+        DB::table('permiso_entity_parents')->truncate();
+    }
+
+    public function getPermissions($entities = [])
+    {
+        if(count($entities)){
+            $permissions = Permission::whereIn('entity_type',$entities)->get();
+        }else{
+            $permissions = Permission::get();
+        }
+
+        return $permissions;
+    }
+
+    public function registerGroup($groupName, $permissions = [], $displayName = "")
     {
         $group = Group::firstOrCreate(['name' => $groupName]);
-        $group->display_name = $displayName;
+        $group->display_name = $displayName != "" ? $displayName : $groupName;
         $group->save();
 
-        if(count($permissionIds))
+        if(count($permissions))
         {
+            $permissionIds = Permission::whereIn('value',$permissions)->pluck('id')->toArray();
             $group->permissions()->sync($permissionIds);
         }
+
+        return $group;
     }
 
     public function setParent($child, $parent)
@@ -35,8 +61,7 @@ class Permiso
             'value' => $child->getKey(),
         ]);
 
-        $childEntity->pid = $parentEntity->id;
-        $childEntity->save();
+        $parentEntity->children()->save($childEntity);
     }
 
     public function deregisterEntity($entity)
@@ -51,12 +76,28 @@ class Permiso
         $entity->delete();
     }
 
+
     public function registerEntity($entity)
     {
-        Entity::firstOrCreate([
-            'type' => get_class($entity),
-            'value' => $entity->getKey()
-        ]);
+
+        if($entity instanceof \Illuminate\Database\Eloquent\Collection || is_array($entity)) {
+
+            foreach($entity as $item)
+            {
+                Entity::firstOrCreate([
+                    'type' => get_class($item),
+                    'value' => $item->getKey()
+                ]);
+            }
+
+        }else {
+
+            Entity::firstOrCreate([
+                'type' => get_class($entity),
+                'value' => $entity->getKey()
+            ]);
+        }
+
     }
 
     public function denyOnGroupAndEntity($user, $group, $entity)
@@ -97,15 +138,37 @@ class Permiso
         $grantor->commit();
     }
 
-    public function grantPermissionOnEntity($permission, $user, $entity)
+    public function denyPermissionOnEntity($user, $permission, $entity)
     {
-        $grantor = new PermissionGrantor($user);
+        $grantor = new PermissionDenier($user);
         $grantor->permission($permission);
         $grantor->entity($entity);
         $grantor->commit();
     }
 
-    public function grantPermission($permission, $user)
+    public function grantPermissionOnEntity($user, $permission, $entity, $children = NULL)
+    {
+        $grantor = new PermissionGrantor($user);
+        $grantor->permission($permission);
+        $grantor->entity($entity);
+
+        if(!is_null($children))
+        {
+            $grantor->children($children);
+        }
+
+        $grantor->commit();
+    }
+
+
+    public function denyPermission($user, $permission)
+    {
+        $grantor = new PermissionDenier($user);
+        $grantor->permission($permission);
+        $grantor->commit();
+    }
+
+    public function grantPermission($user, $permission)
     {
         $grantor = new PermissionGrantor($user);
         $grantor->permission($permission);
@@ -149,7 +212,7 @@ class Permiso
         dd("rajiv");
     }
 
-    public function soBuild($user)
+    public function build($userId)
     {
         $builder = new Build($userId);
         return $builder->make();

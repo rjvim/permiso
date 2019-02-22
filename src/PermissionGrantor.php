@@ -24,7 +24,8 @@ class PermissionGrantor extends PermissionActions
                     'of_id' => $this->permission->id,
                     'of_type' => get_class($this->permission),
                     'user_id' => $this->user->id,
-                    'entity_id' => !is_null($this->entity) ? $this->entity->id : NULL
+                    'entity_id' => !is_null($this->entity) ? $this->entity->id : NULL,
+                    'child_permissions' => !is_null($this->children) ? $this->children : NULL
                 ]);
             }
         }
@@ -41,12 +42,16 @@ class PermissionGrantor extends PermissionActions
                 ])->delete();
             }
 
-            UserPermission::firstOrCreate([
-                'of_id' => $this->group->id,
-                'of_type' => get_class($this->group),
-                'user_id' => $this->user->id,
-                'entity_id' => !is_null($this->entity) ? $this->entity->id : NULL
-            ]);
+            if(!$this->hasGlobalGroupPermission)
+            {
+                UserPermission::firstOrCreate([
+                    'of_id' => $this->group->id,
+                    'of_type' => get_class($this->group),
+                    'user_id' => $this->user->id,
+                    'entity_id' => !is_null($this->entity) ? $this->entity->id : NULL,
+                    'child_permissions' => !is_null($this->children) ? $this->children : NULL
+                ]);
+            }
         }
 
         if(is_null($this->permission) && is_null($this->group) && !is_null($this->entity))
@@ -54,13 +59,15 @@ class PermissionGrantor extends PermissionActions
             // Remove all existing permissions on this entity
             UserPermission::where([
                 'user_id' => $this->user->id,
-                'entity_id' => $this->entity->id
+                'entity_id' => $this->entity->id,
+                'child_permissions' => !is_null($this->children) ? $this->children : NULL
             ])->delete();
 
             // Because, we have a permission which gives complete access to entity
             UserPermission::create([
                 'user_id' => $this->user->id,
-                'entity_id' => $this->entity->id
+                'entity_id' => $this->entity->id,
+                'child_permissions' => !is_null($this->children) ? $this->children : NULL
             ]);
         }
 

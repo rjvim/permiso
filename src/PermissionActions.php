@@ -16,8 +16,10 @@ class PermissionActions
     public $entity = NULL;
     public $group = NULL;
     public $uniqueness = false;
+    public $children = NULL;
 
     public $hasGlobalPermission = false;
+    public $hasGlobalGroupPermission = false;
     public $hasEntityPermission = false;
 
     public function __construct($user)
@@ -34,6 +36,11 @@ class PermissionActions
         $this->uniqueness = $value;
     }
 
+    public function children($children)
+    {
+        $this->children = $children;
+    }
+
     public function entity($entity)
     {
         $this->entity = Entity::firstOrCreate([
@@ -48,7 +55,14 @@ class PermissionActions
 
     public function group($groupName)
     {
-        $this->group = Group::firstOrCreate(['name' => $groupName]);
+        $this->group = Group::whereName($groupName)->first();
+
+        $globalPermissions = $this->getGlobalGroupPermissions();
+
+        if($globalPermissions->count())
+        {
+            $this->hasGlobalGroupPermission = true;
+        }
     }
 
     public function permission($permission)
@@ -78,6 +92,17 @@ class PermissionActions
     public function getGlobalPermissions()
     {
         $userPermissions = $this->permission
+                            ->userPermissions()
+                            ->where('user_id',$this->user->id)
+                            ->whereNull('entity_id')
+                            ->get();
+
+        return $userPermissions;
+    }
+
+    public function getGlobalGroupPermissions()
+    {
+        $userPermissions = $this->group
                             ->userPermissions()
                             ->where('user_id',$this->user->id)
                             ->whereNull('entity_id')

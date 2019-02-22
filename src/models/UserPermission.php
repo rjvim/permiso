@@ -8,6 +8,10 @@ class UserPermission extends Model {
 
     public $guarded = [];
 
+    protected $casts = [
+        'child_permissions' => 'array',
+    ];
+
     public function of()
     {
         return $this->morphTo();
