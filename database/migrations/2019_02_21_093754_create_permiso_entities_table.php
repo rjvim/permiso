@@ -17,7 +17,6 @@ class CreatePermisoEntitiesTable extends Migration
             $table->increments('id');
             $table->string('type')->nullable();
             $table->string('value')->nullable();
-            $table->integer('pid')->nullable();
             $table->timestamps();
         });
     }

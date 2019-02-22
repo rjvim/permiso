@@ -21,6 +21,7 @@ class CreatePermisoUserPermissionsTable extends Migration
             $table->integer('of_id')->nullable();
             $table->integer('entity_id')->nullable();
             $table->string('label')->nullable();
+            $table->text('child_permissions')->nullable();
 
             $table->timestamps();
         });
