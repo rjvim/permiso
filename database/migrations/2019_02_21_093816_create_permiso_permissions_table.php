@@ -17,7 +17,7 @@ class CreatePermisoPermissionsTable extends Migration
             $table->increments('id');
             $table->string('value')->nullable();
             $table->string('entity_type')->nullable();
-            $table->text('description')->nullable();
+            $table->text('meta')->nullable();
             $table->timestamps();
         });
     }

@@ -13,4 +13,8 @@ class Entity extends Model {
         return $this->belongsToMany(Entity::class,'permiso_entity_parents','parent_id','child_id');
     }
 
+    public function parents()
+    {
+        return $this->belongsToMany(Entity::class,'permiso_entity_parents','child_id','parent_id');
+    }
 }

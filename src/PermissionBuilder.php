@@ -50,11 +50,14 @@ class PermissionBuilder
     {
         if(is_array($value)){
 
+            $entities = Entity::whereIn('id',$value)->get();
+
             $this->permissions[$permissionValue] = array_merge(
-                $this->permissions[$permissionValue],$value);
+                $this->permissions[$permissionValue],$entities->pluck('value')->toArray());
 
         }else{
-            array_push($this->permissions[$permissionValue],$value);
+            $entity = Entity::find($value);
+            array_push($this->permissions[$permissionValue],$entity->value);
         }
     }
 

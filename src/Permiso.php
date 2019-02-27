@@ -12,7 +12,22 @@ use Betalectic\Permiso\Models\UserPermission;
 
 class Permiso
 {
+    public function deleteParents($item)
+    {
+        $entity =  Entity::firstOrCreate([
+                'type' => get_class($item),
+                'value' => $item->getKey()
+            ]);
+
+        $entity->parents()->detach();
+    }
+
     public function cleanUp()
+    {
+
+    }
+
+    public function restart()
     {
         DB::table('permiso_entities')->truncate();
         DB::table('permiso_permissions')->truncate();
@@ -34,10 +49,10 @@ class Permiso
         return $permissions;
     }
 
-    public function registerGroup($groupName, $permissions = [], $displayName = "")
+    public function registerGroup($groupName, $permissions = [], $meta = [])
     {
         $group = Group::firstOrCreate(['name' => $groupName]);
-        $group->display_name = $displayName != "" ? $displayName : $groupName;
+        $group->meta = json_encode($meta);
         $group->save();
 
         if(count($permissions))
@@ -64,6 +79,11 @@ class Permiso
         $parentEntity->children()->save($childEntity);
     }
 
+    public function cleanParents($entity)
+    {
+        $entity->parents()->detach();
+    }
+
     public function deregisterEntity($entity)
     {
         $entity = Entity::where([
@@ -71,7 +91,7 @@ class Permiso
             'value' => $entity->getKey(),
         ])->first();
 
-        $entity->children()->update(['pid' => NULL]);
+        $entity->children()->detach();
 
         $entity->delete();
     }
@@ -115,12 +135,18 @@ class Permiso
         $denier->commit();
     }
 
-    public function grantOnGroupAndEntity($user, $group, $entity, $uniqueness = false)
+    public function grantOnGroupAndEntity($user, $group, $entity, $uniqueness = false, $children = NULL)
     {
         $grantor = new PermissionGrantor($user);
         $grantor->group($group);
         $grantor->entity($entity);
         $grantor->setUniqueness($uniqueness);
+
+        if(!is_null($children))
+        {
+            $grantor->children($children);
+        }
+
         $grantor->commit();
     }
 
@@ -131,10 +157,16 @@ class Permiso
         $grantor->commit();
     }
 
-    public function grantOnEntity($user, $entity)
+    public function grantOnEntity($user, $entity, $children = NULL)
     {
         $grantor = new PermissionGrantor($user);
         $grantor->entity($entity);
+
+        if(!is_null($children))
+        {
+            $grantor->children($children);
+        }
+
         $grantor->commit();
     }
 
@@ -187,20 +219,26 @@ class Permiso
         $permission->delete();
     }
 
-    public function registerPermission($permission, $entity)
+    public function registerPermission($permission, $meta = [], $entity = NULL)
     {
         $permission = Permission::firstOrCreate([
             'value' => $permission
         ]);
 
-        if(is_null($permission->entity_type)){
-            $permission->entity_type = $entity;
-            $permission->save();
-        }
-        else{
-            if($permission->entity_type != $entity)
-            {
-                throw new Exception("This permission is already registered with {$permission->entity_type}", 1);
+        $permission->meta = json_encode($meta);
+        $permission->save();
+
+        if(!is_null($entity))
+        {
+            if(is_null($permission->entity_type)){
+                $permission->entity_type = $entity;
+                $permission->save();
+            }
+            else{
+                if($permission->entity_type != $entity)
+                {
+                    throw new Exception("This permission is already registered with {$permission->entity_type}", 1);
+                }
             }
         }
 
@@ -237,12 +275,6 @@ class Permiso
         ]);
 
         return $permission;
-    }
-
-    public function manageGroup($name, $permissions, $entity = NULL)
-    {
-        $group = Group::firstOrCreate(['name' => $name]);
-        $group->associate($permissions);
     }
 
     public function deleteGroup($name)

@@ -36,7 +36,7 @@ class PermissionGrantor extends PermissionActions
             if($this->uniqueness)
             {
                 UserPermission::where([
-                    'of_id' => $this->group->id,
+                    'entity_id' => !is_null($this->entity) ? $this->entity->id : NULL,
                     'of_type' => get_class($this->group),
                     'user_id' => $this->user->id
                 ])->delete();
@@ -59,8 +59,7 @@ class PermissionGrantor extends PermissionActions
             // Remove all existing permissions on this entity
             UserPermission::where([
                 'user_id' => $this->user->id,
-                'entity_id' => $this->entity->id,
-                'child_permissions' => !is_null($this->children) ? $this->children : NULL
+                'entity_id' => $this->entity->id
             ])->delete();
 
             // Because, we have a permission which gives complete access to entity

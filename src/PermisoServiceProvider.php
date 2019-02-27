@@ -20,5 +20,8 @@ class PermisoServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->singleton(RegistrableObserver::class, function($app) {
+            return new RegistrableObserver(new Permiso);
+        });
     }
 }

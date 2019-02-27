@@ -18,7 +18,7 @@ class Permission extends JsonResource
             'id' => $this->id,
             'value' => $this->value,
             'entity_type' => $this->entity_type,
-            'description' => $this->description,
+            'meta' => json_decode($this->meta),
         ];
     }
 }
