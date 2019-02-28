@@ -38,6 +38,17 @@ class Permiso
         DB::table('permiso_entity_parents')->truncate();
     }
 
+    public function getPermissionsByValue($values = [])
+    {
+        if(count($values)){
+            $permissions = Permission::whereIn('value',$values)->get();
+        }else{
+            $permissions = Permission::get();
+        }
+
+        return $permissions;
+    }
+
     public function getPermissions($entities = [])
     {
         if(count($entities)){
@@ -47,6 +58,11 @@ class Permiso
         }
 
         return $permissions;
+    }
+
+    public function getGroups()
+    {
+        return Group::get();
     }
 
     public function registerGroup($groupName, $permissions = [], $meta = [])
@@ -150,10 +166,11 @@ class Permiso
         $grantor->commit();
     }
 
-    public function grantOnGroup($user, $group)
+    public function grantOnGroup($user, $group, $uniqueness = false)
     {
         $grantor = new PermissionGrantor($user);
         $grantor->group($group);
+        $grantor->setUniqueness($uniqueness);
         $grantor->commit();
     }
 
@@ -280,8 +297,9 @@ class Permiso
     public function deleteGroup($name)
     {
         $group = Group::firstOrCreate(['name' => $name]);
+        $group->userPermissions()->delete();
         $group->permissions()->detach();
-        $group->users()->detach();
+        $group->entities()->detach();
         $group->delete();
     }
 
