@@ -17,6 +17,7 @@ class PermissionActions
     public $group = NULL;
     public $uniqueness = false;
     public $children = NULL;
+    public $meta = [];
 
     public $hasGlobalPermission = false;
     public $hasGlobalGroupPermission = false;
@@ -34,6 +35,11 @@ class PermissionActions
         **/
 
         $this->uniqueness = $value;
+    }
+
+    public function meta($meta)
+    {
+        $this->meta = $meta;
     }
 
     public function children($children)

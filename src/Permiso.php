@@ -27,6 +27,22 @@ class Permiso
 
     }
 
+    public function findUsersOnGroupAndEntity($groupName, $entity)
+    {
+        $group = Group::firstOrCreate(['name' => $groupName]);
+
+        $entity = Entity::firstOrCreate([
+            'type' => get_class($entity),
+            'value' => $entity->getKey(),
+        ]);
+
+        return UserPermission::where([
+            'entity_id' => $entity->id,
+            'of_id' => $group->id,
+            'of_type' => Group::class
+        ])->get();
+    }
+
     public function restart()
     {
         DB::table('permiso_entities')->truncate();
@@ -151,11 +167,12 @@ class Permiso
         $denier->commit();
     }
 
-    public function grantOnGroupAndEntity($user, $group, $entity, $uniqueness = false, $children = NULL)
+    public function grantOnGroupAndEntity($user, $group, $entity, $meta = [], $uniqueness = false, $children = NULL)
     {
         $grantor = new PermissionGrantor($user);
         $grantor->group($group);
         $grantor->entity($entity);
+        $grantor->meta($meta);
         $grantor->setUniqueness($uniqueness);
 
         if(!is_null($children))

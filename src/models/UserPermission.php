@@ -10,6 +10,7 @@ class UserPermission extends Model {
 
     protected $casts = [
         'child_permissions' => 'array',
+        'meta' => 'array'
     ];
 
     public function of()

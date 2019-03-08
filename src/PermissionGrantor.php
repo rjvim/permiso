@@ -14,13 +14,15 @@ class PermissionGrantor extends PermissionActions
 
     public function commit()
     {
+        $userPermission = null;
+
         if(!is_null($this->permission)) // Group would be empty
         {
             // If user doesn't have global permission, we can give entity permission
 
             if(!$this->hasGlobalPermission)
             {
-                UserPermission::firstOrCreate([
+                $userPermission = UserPermission::firstOrCreate([
                     'of_id' => $this->permission->id,
                     'of_type' => get_class($this->permission),
                     'user_id' => $this->user->id,
@@ -35,7 +37,7 @@ class PermissionGrantor extends PermissionActions
 
             if($this->uniqueness)
             {
-                UserPermission::where([
+                $userPermission = UserPermission::where([
                     'entity_id' => !is_null($this->entity) ? $this->entity->id : NULL,
                     'of_type' => get_class($this->group),
                     'user_id' => $this->user->id
@@ -44,7 +46,7 @@ class PermissionGrantor extends PermissionActions
 
             if(!$this->hasGlobalGroupPermission)
             {
-                UserPermission::firstOrCreate([
+                $userPermission = UserPermission::firstOrCreate([
                     'of_id' => $this->group->id,
                     'of_type' => get_class($this->group),
                     'user_id' => $this->user->id,
@@ -63,11 +65,17 @@ class PermissionGrantor extends PermissionActions
             ])->delete();
 
             // Because, we have a permission which gives complete access to entity
-            UserPermission::create([
+            $userPermission = UserPermission::create([
                 'user_id' => $this->user->id,
                 'entity_id' => $this->entity->id,
                 'child_permissions' => !is_null($this->children) ? $this->children : NULL
             ]);
+        }
+
+        if(!is_null($userPermission))
+        {
+            $userPermission->meta = $this->meta;
+            $userPermission->save();
         }
 
     }
