@@ -28,7 +28,11 @@ class RegistrableObserver
                     $parentModel = $parentModel->$up;
                 }
 
-                $this->permiso->setParent($model, $parentModel);
+                if(!is_null($parentModel))
+                {
+                    $this->permiso->setParent($model, $parentModel);
+                }
+
             }
 
         }
