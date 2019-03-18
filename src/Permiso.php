@@ -78,7 +78,14 @@ class Permiso
 
     public function getGroups()
     {
-        return Group::get();
+        return Group::with('permissions')->get();
+    }
+
+    public function getGroup($groupName)
+    {
+        $group = Group::firstOrCreate(['name' => $groupName]);
+        $group->permissions;
+        return $group;
     }
 
     public function registerGroup($groupName, $permissions = [], $meta = [])
