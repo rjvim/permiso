@@ -81,9 +81,16 @@ class Permiso
         return Group::with('permissions')->get();
     }
 
-    public function getGroup($groupName)
+    public function getGroupByName($groupName)
     {
-        $group = Group::firstOrCreate(['name' => $groupName]);
+        $group = Group::whereName($groupName)->first();
+        $group->permissions;
+        return $group;
+    }
+
+    public function getGroupById($id)
+    {
+        $group = Group::find($id);
         $group->permissions;
         return $group;
     }
