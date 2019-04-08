@@ -88,54 +88,6 @@ class Build
         }
 
         return $permissionBuilder->permissions;
-
-
-        return $this->permissions;
-
-        foreach($userPermissions as $userPermission)
-        {
-            $permission = $userPermission->permission;
-
-            if(is_null($permission->entity)){
-                $this->permissions[$permission->value] = true;
-            }
-            else{
-                if(is_null($permission->entity_id)){
-                    $this->permissions[$permission->value] = true;
-                }else{
-                    array_push($this->permissions[$permission->value], $permission->entity_id);
-                }
-            }
-        }
-
-        return $this->permissions;
-
-        // Fetch users groups
-        $userGroups = $user->groups;
-
-        foreach($userGroups as $userGroup)
-        {
-            foreach($userGroup->permissions as $permission)
-            {
-                if(is_null($permission->entity)){
-                    $this->permissions[$permission->value] = true;
-                }
-                else{
-                    $entities = $userGroup->entities;
-
-                    foreach($entities as $entity)
-                    {
-                        // If there is no entity, does user get to approve all entities?
-                        if($entity->entity == $permission->entity)
-                        {
-                            array_push($this->permissions[$permission->value], $entity->entity_id);
-                        }
-                    }
-                }
-            }
-        }
-
-        return $this->permissions;
     }
 
 }

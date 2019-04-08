@@ -27,7 +27,12 @@ class PermissionBuilder
 
         foreach($permissions as $permission)
         {
-            $this->permissions[$permission->value] = [];
+            if(is_null($permission->entity_type))
+            {   
+                $this->permissions[$permission->value] = false;
+            } else {
+                $this->permissions[$permission->value] = [];
+            }
         }
     }
 
