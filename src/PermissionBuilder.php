@@ -85,7 +85,8 @@ class PermissionBuilder
 
                 if($children->count())
                 {
-                    $this->addToPermissions($permissionValue, $children->pluck('id')->toArray());
+                    $this->addToPermissions($permissionValue, 
+                        $children->pluck('id')->toArray());
                 }
 
             }

@@ -240,6 +240,11 @@ class Permiso
         $grantor->commit();
     }
 
+    public function denyAllPermissionsForUser($user)
+    {
+        $grantor = new PermissionDenier($user);
+        $grantor->commit();
+    }
 
     public function denyPermission($user, $permission)
     {

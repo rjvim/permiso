@@ -43,5 +43,12 @@ class PermissionDenier extends PermissionActions
             ])->delete();
         }
 
+        if(is_null($this->permission) && is_null($this->group) && is_null($this->entity))
+        {
+            // Remove all existing permissions on this entity
+            UserPermission::where([
+                'user_id' => $this->user->id
+            ])->delete();
+        }
     }
 }
