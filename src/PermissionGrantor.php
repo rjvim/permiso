@@ -72,8 +72,9 @@ class PermissionGrantor extends PermissionActions
             ]);
         }
 
-        if(!is_null($userPermission))
+        if(!is_null($userPermission) && ($userPermission instanceof Betalectic\Permiso\Models\UserPermission))
         {
+            $userPermission->fresh();
             $userPermission->meta = $this->meta;
             $userPermission->save();
         }
