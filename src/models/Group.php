@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Group extends Model {
 
-	protected $table = "permiso_groups";
+    protected $table = "permiso_groups";
 
     public $guarded = [];
 
@@ -20,6 +20,6 @@ class Group extends Model {
 
     public function entities()
     {
-        return $this->belongsToMany(Entity::class, 'permiso_groups_entities', 'group_id', 'entity_id');
+        return $this->belongsToMany(Entity::class, 'permiso_user_permissions', 'of_id', 'entity_id');
     }
 }
