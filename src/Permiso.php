@@ -95,9 +95,14 @@ class Permiso
         return $group;
     }
 
-    public function registerGroup($groupName, $permissions = [], $meta = [])
+    public function registerGroup($groupName, $permissions = [], $meta = [], $unique = NULL)
     {
-        $group = Group::firstOrCreate(['name' => $groupName]);
+        if(is_null($unique)) {
+            $group = Group::firstOrCreate(['name' => $groupName]);
+        } else {
+            $group = Group::firstOrCreate(['name' => $groupName, 'unique' => $unique]);
+        }
+
         $group->meta = json_encode($meta);
         $group->save();
 
