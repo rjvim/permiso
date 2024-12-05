@@ -117,6 +117,26 @@ class Permiso
         return $group;
     }
 
+    public function updateRegistedGroup($id, $groupName, $permissions = [], $meta = [])
+    {
+
+        $group = Group::where(['id' => $id])->first();
+
+        $group->name = $groupName;
+        $group->meta = json_encode($meta);
+        $group->save();
+
+        if(count($permissions))
+        {
+            $permissionIds = Permission::whereIn('value',$permissions)->pluck('id')->toArray();
+            $group->permissions()->sync($permissionIds);
+        } else {
+            $group->permissions()->sync([]);
+        }
+
+        return $group;
+    }
+
     public function setParent($child, $parent)
     {
         $parentEntity = Entity::firstOrCreate([
